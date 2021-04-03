@@ -1,11 +1,14 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.1
+// @version      0.2
 // @match        https://animemusicquiz.com/*
+// @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
+// @grant        GM_getResourceText
 // ==/UserScript==
 
 var genres
 var tags
+var malIds = JSON.parse(GM_getResourceText("malIds"))
 var seasonIds = {
     "WINTER": 0,
     "SPRING": 1,
@@ -113,22 +116,10 @@ function resetReportButton() {
 
 // Anilist
 function loadAnimeDetailsFromAnilist(song) {
-    var query = `
-query ($title: String) {
-  Media (search: $title, type: ANIME) {
-    seasonYear
-    season
-    genres
-    tags {
-      name
-      rank
-    }
-  }
-}
-`
-    var variables = {
-        title: song.animeName
-    }
+    var malId = malIds[song.animeId]
+
+    var query = (malId != null) ? searchByIdQuery() : searchByTitleQuery()
+    var variables = (malId != null) ? { id: malId.split(" ")[0] } : { title: song.animeName }
 
     var url = "https://graphql.anilist.co"
     var request = new XMLHttpRequest()
@@ -148,6 +139,38 @@ query ($title: String) {
 
     displayReportProgressIndicator()
     request.send(requestBody)
+}
+
+function searchByIdQuery() {
+        return `
+query ($id: Int) {
+  Media (idMal: $id, type: ANIME) {
+    seasonYear
+    season
+    genres
+    tags {
+      name
+      rank
+    }
+  }
+}
+`
+}
+
+function searchByTitleQuery() {
+    return `
+query ($title: String) {
+  Media (search: $title, type: ANIME) {
+    seasonYear
+    season
+    genres
+    tags {
+      name
+      rank
+    }
+  }
+}
+`
 }
 
 function parseAnilistResponse(response, song) {

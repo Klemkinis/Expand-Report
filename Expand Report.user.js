@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2
+// @version      0.2.1
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @grant        GM_getResourceText
@@ -194,6 +194,7 @@ function makeLobby(song, animeDetails) {
     setMaxSongCountSetting(100)
     setOnlyWatchedSetting()
     setSelectedSongType(song.type)
+    setGuessTimeSetting(5)
 
     roomBrowser.host()
 }
@@ -271,4 +272,13 @@ function setSelectedSongType(type) {
         }
     }
     hostModal.updateSetting("songType", songTypeSettings)
+}
+
+function setGuessTimeSetting(time) {
+    var guessTimeSettings = {
+        standardValue: time,
+        randomValue: [time, time],
+        randomOn: false
+    }
+    hostModal.updateSetting("guessTime", guessTimeSettings)
 }

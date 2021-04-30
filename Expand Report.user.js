@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.1
+// @version      0.2.2
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @grant        GM_getResourceText
@@ -265,10 +265,10 @@ function setSelectedSongType(type) {
             inserts: type == 3
         },
         advancedValue: {
-            openings: type == 1 ? 100 : 0,
-            endings: type == 2 ? 100 : 0,
-            inserts: type == 3 ? 100 : 0,
-            random: 0
+            openings: 0,
+            endings: 0,
+            inserts: 0,
+            random: 100
         }
     }
     hostModal.updateSetting("songType", songTypeSettings)

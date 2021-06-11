@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.4
+// @version      0.2.5
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
+// @updateURL    https://github.com/Klemkinis/Expand-Report/raw/main/Expand%20Report.user.js
 // @grant        GM_getResourceText
 // ==/UserScript==
 

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.3
+// @version      0.2.4
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @grant        GM_getResourceText
@@ -115,28 +115,44 @@ function resetReportButton() {
 }
 
 // Anilist
-function loadAnimeDetailsFromAnilist(song) {
+async function loadAnimeDetailsFromAnilist(song) {
     var url = "https://graphql.anilist.co"
-    var request = new XMLHttpRequest()
-    request.open("POST", url, true)
-    request.setRequestHeader("Content-Type", "application/json")
-    request.setRequestHeader("Accept", "application/json")
-    request.timeout = 15 * 1000
-    request.onloadstart = function() {
-        displayReportProgressIndicator()
-    }
-    request.onload = function() {
-        parseAnilistResponse(this.response, this.status, song)
-    }
-    request.ontimeout = function() {
-        resetReportButton()
-    }
-    request.onerror = function() {
-        disableReportButton()
-    }
-
+    var httpMethod = "POST"
     var requestBody = animeDetailsRequestBody(song)
-    request.send(requestBody)
+    try {
+        displayReportProgressIndicator()
+        var response = await responseFrom(url, httpMethod, requestBody)
+        var animeDetails = parseAnimeDetailsFrom(response)
+        resetReportButton()
+        makeLobby(song, animeDetails)
+    } catch (error) {
+        disableReportButton()
+        console.log(error)
+    }
+}
+
+function responseFrom(url, method, body) {
+    return new Promise(function (resolve, reject) {
+        var request = new XMLHttpRequest()
+        request.open(method, url, true)
+        request.setRequestHeader("Content-Type", "application/json")
+        request.setRequestHeader("Accept", "application/json")
+        request.timeout = 15 * 1000
+        request.onload = function() {
+            if (this.status != 200) {
+                reject("Request completed with error status: " + this.status + " " + this.statusText)
+                return
+            }
+            resolve(this.response)
+        }
+        request.ontimeout = function() {
+            reject("Request timedout!")
+        }
+        request.onerror = function() {
+            reject("Unexpected network error!")
+        }
+        request.send(body)
+    })
 }
 
 function animeDetailsRequestBody(song) {
@@ -199,22 +215,12 @@ query ($title: String) {
 `
 }
 
-function parseAnilistResponse(response, status, song) {
-    if (status != 200) {
-        console.error("Error response status from anilist:", status)
-        disableReportButton()
-        return
-    }
-
+function parseAnimeDetailsFrom(response) {
     var animeDetails = JSON.parse(response).data.Media
     if (animeDetails == null) {
-        console.error("Invalid or corrupted response from anilist:", response)
-        disableReportButton()
-        return
+        throw("Invalid or corrupted response from anilist")
     }
-
-    resetReportButton()
-    makeLobby(song, animeDetails)
+    return animeDetails
 }
 
 // Lobby

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.2
+// @version      0.2.3
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @grant        GM_getResourceText
@@ -116,29 +116,55 @@ function resetReportButton() {
 
 // Anilist
 function loadAnimeDetailsFromAnilist(song) {
-    var malId = malIds[song.animeId]
-
-    var query = (malId != null) ? searchByIdQuery() : searchByTitleQuery()
-    var variables = (malId != null) ? { id: malId.split(" ")[0] } : { title: song.animeName }
-
     var url = "https://graphql.anilist.co"
     var request = new XMLHttpRequest()
     request.open("POST", url, true)
     request.setRequestHeader("Content-Type", "application/json")
     request.setRequestHeader("Accept", "application/json")
-    request.onreadystatechange = function() {
-        if (this.readyState != 4 || this.status != 200) {
-            return
-        }
-        parseAnilistResponse(this.response, song)
+    request.timeout = 15 * 1000
+    request.onloadstart = function() {
+        displayReportProgressIndicator()
     }
-    let requestBody = JSON.stringify({
+    request.onload = function() {
+        parseAnilistResponse(this.response, this.status, song)
+    }
+    request.ontimeout = function() {
+        resetReportButton()
+    }
+    request.onerror = function() {
+        disableReportButton()
+    }
+
+    var requestBody = animeDetailsRequestBody(song)
+    request.send(requestBody)
+}
+
+function animeDetailsRequestBody(song) {
+    var malId = malIds[song.animeId]
+    var title = song.animeName
+    if (malId != null) {
+        return animeDetailsByIdRequestBody(malId)
+    } else {
+        return animeDetailsByTitleRequestBody(title)
+    }
+}
+
+function animeDetailsByIdRequestBody(malId) {
+    var query = searchByIdQuery()
+    var variables = { id: malId.split(" ")[0] }
+    return JSON.stringify({
         query: query,
         variables: variables
     })
+}
 
-    displayReportProgressIndicator()
-    request.send(requestBody)
+function animeDetailsByTitleRequestBody(title) {
+    var query = searchByTitleQuery()
+    var variables = { title: title }
+    return JSON.stringify({
+        query: query,
+        variables: variables
+    })
 }
 
 function searchByIdQuery() {
@@ -173,9 +199,16 @@ query ($title: String) {
 `
 }
 
-function parseAnilistResponse(response, song) {
+function parseAnilistResponse(response, status, song) {
+    if (status != 200) {
+        console.error("Error response status from anilist:", status)
+        disableReportButton()
+        return
+    }
+
     var animeDetails = JSON.parse(response).data.Media
     if (animeDetails == null) {
+        console.error("Invalid or corrupted response from anilist:", response)
         disableReportButton()
         return
     }

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.6
+// @version      0.2.7
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @updateURL    https://github.com/Klemkinis/Expand-Report/raw/main/Expand%20Report.user.js
@@ -64,17 +64,8 @@ function reportButton() {
 
 function addReportButton() {
     var reportButton = document.createElement("div")
-    reportButton.id = "reportButton"
-    reportButton.className = "fa fa-flag"
-    reportButton.style.color = "#ff4600"
-    reportButton.style.fontSize = "20px"
-    reportButton.style.position = "absolute"
-    reportButton.style.bottom = "10px"
-    reportButton.style.right = "15px"
-    reportButton.style.cursor = "pointer"
-    reportButton.onclick = function() {
-        loadAnimeDetailsFromAnilist(expandLibrary.selectedSong)
-    }
+    var configuration = activeReportButtonConfiguration()
+    configureReportButton(reportButton, configuration)
 
     var reportButtonContainer = document.getElementById("elInputQuestionContainer")
     if (reportButtonContainer == null) {
@@ -85,34 +76,67 @@ function addReportButton() {
 
 function displayReportProgressIndicator() {
     var button = reportButton()
-    if (button == null) {
-        return
-    }
-    button.className = "fa fa-spinner fa-pulse"
-    button.style.color = "#4299f1"
-    button.onclick = null
+    var configuration = loadingReportButtonConfiguration()
+    configureReportButton(button, configuration)
 }
 
 function disableReportButton() {
     var button = reportButton()
-    if (button == null) {
-        return
-    }
-    button.className = "fa fa-times"
-    button.style.color = "#ff4600"
-    button.onclick = null
+    var configuration = disabledReportButtonConfiguration()
+    configureReportButton(button, configuration)
 }
 
 function resetReportButton() {
     var button = reportButton()
-    if (button == null) {
+    var configuration = activeReportButtonConfiguration()
+    configureReportButton(button, configuration)
+}
+
+function configureReportButton(button, configuration) {
+    if (button == null || configuration == null) {
         return
     }
-    button.className = "fa fa-flag"
-    button.style.color = "#ff4600"
-    button.onclick = function() {
+    button.id = configuration.id
+    button.className = configuration.className
+    button.style.color = configuration.color
+    button.style.fontSize = configuration.fontSize
+    button.style.position = configuration.position
+    button.style.bottom = configuration.bottomPadding
+    button.style.right = configuration.rightPadding
+    button.style.cursor = configuration.cursorType
+    button.onclick = configuration.action
+}
+
+function activeReportButtonConfiguration() {
+    var configuration = {}
+    configuration.id = "reportButton"
+    configuration.className = "fa fa-flag"
+    configuration.color = "#ff4600"
+    configuration.fontSize = "20px"
+    configuration.position = "absolute"
+    configuration.bottomPadding = "10px"
+    configuration.rightPadding = "15px"
+    configuration.cursorType = "pointer"
+    configuration.action = function() {
         loadAnimeDetailsFromAnilist(expandLibrary.selectedSong)
     }
+    return configuration
+}
+
+function disabledReportButtonConfiguration() {
+    var configuration = activeReportButtonConfiguration()
+    configuration.className = "fa fa-times"
+    configuration.color = "#ff4600"
+    configuration.action = null
+    return configuration
+}
+
+function loadingReportButtonConfiguration() {
+    var configuration = activeReportButtonConfiguration()
+    configuration.className = "fa fa-spinner fa-pulse"
+    configuration.color = "#4299f1"
+    configuration.action = null
+    return configuration
 }
 
 // Anilist

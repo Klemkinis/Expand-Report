@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.7
+// @version      0.2.8
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @updateURL    https://github.com/Klemkinis/Expand-Report/raw/main/Expand%20Report.user.js
@@ -277,6 +277,11 @@ function setSeasonSettings(year, season) {
 }
 
 function setGenreSettings(selectedSongGenres) {
+    if (genres.length == 0) {
+        console.error("Missing AMQ genres - most likely something went wrong during login. Reload page for full functionality")
+        return
+    }
+
     var genreSettings = selectedSongGenres
     .map(selectedSongGenre => {
         var amqGenre = genres.find(genre => genre.name == selectedSongGenre)
@@ -291,6 +296,11 @@ function setGenreSettings(selectedSongGenres) {
 }
 
 function setTagSettings(selectedSongTags) {
+    if (tags.length == 0) {
+        console.error("Missing AMQ tags - most likely something went wrong during login. Reload page for full functionality")
+        return
+    }
+
     var tagSettings = selectedSongTags
     .filter(tag => tag.rank > 50)
     .map(selectedSongTag => {

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Expand Report
-// @version      0.2.8
+// @version      0.2.9
 // @match        https://animemusicquiz.com/*
 // @resource     malIds https://raw.githubusercontent.com/Kikimanox/DiscordBotNew/master/data/_amq/annMal.json
 // @updateURL    https://github.com/Klemkinis/Expand-Report/raw/main/Expand%20Report.user.js
@@ -26,12 +26,13 @@ function setupHostModalSwizzling() {
         setTimeout(setupHostModalSwizzling, 1000)
         return
     }
+
     HostModal.prototype.super_setup = HostModal.prototype.setup
     HostModal.prototype.setup = setupHostModal
 }
 
-function setupHostModal(genreInfo, tagInfo, savedSettings) {
-    this.super_setup(genreInfo, tagInfo, savedSettings)
+function setupHostModal(genreInfo, tagInfo, savedSettings, latestQuizSettingStrings) {
+    this.super_setup(genreInfo, tagInfo, savedSettings, latestQuizSettingStrings)
 
     genres = genreInfo
     tags = tagInfo
